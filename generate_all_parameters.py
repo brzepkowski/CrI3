@@ -35,15 +35,15 @@ def HoneyComb_lattice_model(lattice, Jx, Jy, Jz, D, hx=0., hy=0., hz=0., muJ=0.,
 
 def save_lattice(lattice, Lx, Ly):
     ax = plt.gca()
-    lattice.plot_coupling(ax, lattice.nearest_neighbors, linewidth=3.)
+    lattice.plot_coupling(ax, linewidth=3.)
     lattice.plot_order(ax=ax, linestyle=':')
     lattice.plot_sites(ax=ax)
-    lattice.plot_basis(ax, color='g', linewidth=2.)
+    lattice.plot_basis(ax, origin=-0.5*(lattice.basis[0] + lattice.basis[1]))
     ax.set_aspect('equal')
     ax.get_xaxis().set_visible(False)
     ax.get_yaxis().set_visible(False)
     # plt.show()
-    filename = "lattice_" + str(Lx) + "_" + str(Ly) + ".png"
+    filename = "lattice_" + str(Lx) + "_" + str(Ly) + ".pdf"
     plt.savefig(filename)
 
 if __name__ == "__main__":
@@ -71,7 +71,7 @@ if __name__ == "__main__":
     print("L_max: ", L_max)
 
     spinSite = SpinSite(S=1.5, conserve='Sz')
-    lattice = Honeycomb(Lx=Lx, Ly=Ly, sites=spinSite)
+    lattice = Honeycomb(Lx=Lx, Ly=Ly, sites=spinSite, bc=("periodic","open"))
     save_lattice(lattice, Lx, Ly)
     filename = "parameters_Lx=" + str(Lx) + "_Ly=" + str(Ly) + "_D=" + str(D) + ".csv"
     file = open(filename,"w+")
