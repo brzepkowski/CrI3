@@ -71,7 +71,7 @@ if __name__ == "__main__":
     print("L_max: ", L_max)
 
     spinSite = SpinSite(S=1.5, conserve='Sz')
-    lattice = Honeycomb(Lx=Lx, Ly=Ly, sites=spinSite, bc=("periodic","open"))
+    lattice = Honeycomb(Lx=Lx, Ly=Ly, sites=spinSite, bc='periodic')
     save_lattice(lattice, Lx, Ly)
     filename = "parameters_Lx=" + str(Lx) + "_Ly=" + str(Ly) + "_D=" + str(D) + ".csv"
     file = open(filename,"w+")

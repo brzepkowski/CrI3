@@ -173,7 +173,7 @@ if __name__ == "__main__":
     finished_params_filename = sys.argv[8]
 
     spinSite = SpinSite(S=1.5, conserve='Sz')
-    lattice = Honeycomb(Lx=Lx, Ly=Ly, sites=spinSite, bc='periodic')
+    lattice = Honeycomb(Lx=Lx, Ly=Ly, sites=spinSite)
     filename = "partial_data_Lx=" + str(Lx) + "_Ly=" + str(Ly) + "_D=" + str(D) + "_J=" + str(J) + "_L=" + str(L) + "_Sz=" + str(Sz) + ".csv"
     file = open(filename,"w+")
 
@@ -186,8 +186,7 @@ if __name__ == "__main__":
     # in the article, that we are basing on.
     # bcy can take values: "cylinder" / "ladder"
     # bcx can take values "periodic" / "open"
-    # model = HoneyComb_lattice_model(lattice=lattice, Jx=-J, Jy=-J, Jz=-J-L, D=-D, bcy="ladder", bcx="periodic")
-    model = HoneyComb_lattice_model(lattice=lattice, Jx=-J, Jy=-J, Jz=-J-L, D=-D, bcy="periodic", bcx="periodic")
+    model = HoneyComb_lattice_model(lattice=lattice, Jx=-J, Jy=-J, Jz=-J-L, D=-D, bcy="ladder", bcx="periodic")
     results = run_dmrg(model=model,lattice=lattice,s=Sz,n=n)
     # save_to_file(results, D, J, L, file)
     save_to_file(results, file)
