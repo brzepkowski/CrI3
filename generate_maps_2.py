@@ -295,12 +295,16 @@ if __name__ == "__main__":
 
                 # print("\nDMRG ground state energy per node: ", parameterValues.min_energy)
 
+                #
                 # Generate results predicted by the classical theory (given via analytical functions).
-                # Note, that there is no S value in below functions, because it only scales the results.
-                E_FM_z = -2*D - 3*(J+L) # Ferromagnet in the "z" axis
-                E_AF_z = -2*D + 3*(J+L) # Antiferromagnet in the "z" axis
-                E_FM_xy = -3*J # Ferromagnet in the "xy" plane
-                E_AF_xy = 3*J # Antiferromagnet in the "xy" plane
+                #
+
+                # Calculate energy per unit cell
+                E_FM_z = -2*(S**2)*D - 3*(S**2)*(J+L) # Ferromagnet in the "z" axis
+                E_AF_z = -2*(S**2)*D + 3*(S**2)*(J+L) # Antiferromagnet in the "z" axis
+                E_FM_xy = -3*(S**2)*J # Ferromagnet in the "xy" plane
+                E_AF_xy = 3*(S**2)*J # Antiferromagnet in the "xy" plane
+
                 classical_energies = [E_FM_z, E_AF_z, E_FM_xy, E_AF_xy]
                 classical_ground_state_energy = min(classical_energies)
 
@@ -313,7 +317,7 @@ if __name__ == "__main__":
                 elif classical_ground_state_energy == E_AF_xy:
                     all_classical_ground_state_phases[j][l] = 4
 
-                # Energies calculated above are computed just for one elementary cell.
+                # Energies calculated above are computed just for one unit cell.
                 # To get an energy per node in the lattice we need to divide it by 2.
                 classical_ground_state_energy /= 2
                 all_classical_ground_state_energies[j][l] = classical_ground_state_energy
