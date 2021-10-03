@@ -13,13 +13,13 @@ from collections import Counter
 import math
 import sys
 
-def HoneyComb_lattice_model(lattice, Jx, Jy, Jz, D, hx=0., hy=0., hz=0., muJ=0., E=0., bcy="cylinder", bcx="open"):
+def HoneyComb_lattice_model(lattice, Jx, Jy, Jz, D, hx=0., hy=0., hz=0., muJ=0., E=0., bcy="periodic", bcx="periodic"):
 
     model_params = {
         # "S": 1.5,  # Spin 3/2
         # "lattice": "Honeycomb",
         "lattice": lattice,
-        "bc_MPS": "finite",
+        "bc_MPS": "finite", # Combined with bcx='periodic' and bcy='periodic' it gives a finite system on the torus.
         "bc_y": bcy,
         "bc_x": bcx,
         # "Lx": Lx,  # defines cylinder circumference

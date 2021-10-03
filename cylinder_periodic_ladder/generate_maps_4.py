@@ -292,6 +292,7 @@ if __name__ == "__main__":
                 #
 
                 # Calculate energy per unit cell
+                S = 1.5
                 E_FM_z = -2*(S**2)*D - 3*(S**2)*(J+L) # Ferromagnet in the "z" axis
                 E_AF_z = -2*(S**2)*D + 3*(S**2)*(J+L) # Antiferromagnet in the "z" axis
                 E_FM_xy = -3*(S**2)*J # Ferromagnet in the "xy" plane
