@@ -13,17 +13,10 @@ from collections import Counter
 import math
 import sys
 
-def HoneyComb_lattice_model(lattice, Jx, Jy, Jz, D, hx=0., hy=0., hz=0., muJ=0., E=0., bcy="periodic", bcx="periodic"):
+def HoneyComb_model(lattice, Jx, Jy, Jz, D, hx=0., hy=0., hz=0., muJ=0., E=0.):
 
     model_params = {
-        # "S": 1.5,  # Spin 3/2
-        # "lattice": "Honeycomb",
         "lattice": lattice,
-        "bc_MPS": "finite", # Combined with bcx='periodic' and bcy='periodic' it gives a finite system on the torus.
-        "bc_y": bcy,
-        "bc_x": bcx,
-        # "Lx": Lx,  # defines cylinder circumference
-        # "Ly": Ly,  # defines cylinder circumference
         "Jx": Jx,
         "Jy": Jy,
         "Jz": Jz,
@@ -33,7 +26,6 @@ def HoneyComb_lattice_model(lattice, Jx, Jy, Jz, D, hx=0., hy=0., hz=0., muJ=0.,
         "muJ": muJ,
         "D": D,
         "E": E,
-        "conserve": "best"   # Heisenberg coupling
     }
     model = SpinModel(model_params)
     return model
@@ -173,7 +165,7 @@ if __name__ == "__main__":
     finished_params_filename = sys.argv[8]
 
     spinSite = SpinSite(S=1.5, conserve='Sz')
-    lattice = Honeycomb(Lx=Lx, Ly=Ly, sites=spinSite, bc='periodic')
+    lattice = Honeycomb(Lx=Lx, Ly=Ly, sites=spinSite, bc=['periodic', 'periodic'], bc_MPS='finite')
     filename = "partial_data_Lx=" + str(Lx) + "_Ly=" + str(Ly) + "_D=" + str(D) + "_J=" + str(J) + "_L=" + str(L) + "_Sz=" + str(Sz) + ".csv"
     file = open(filename,"w+")
 
@@ -184,10 +176,7 @@ if __name__ == "__main__":
     # Note, that below we are passing negative values of the above parameter, because
     # the defnition of Hamiltonian in SpinModel is different from the Hamiltonian defined
     # in the article, that we are basing on.
-    # bcy can take values: "cylinder" / "ladder"
-    # bcx can take values "periodic" / "open"
-    # model = HoneyComb_lattice_model(lattice=lattice, Jx=-J, Jy=-J, Jz=-J-L, D=-D, bcy="ladder", bcx="periodic")
-    model = HoneyComb_lattice_model(lattice=lattice, Jx=-J, Jy=-J, Jz=-J-L, D=-D, bcy="periodic", bcx="periodic")
+    model = HoneyComb_model(lattice=lattice, Jx=-J, Jy=-J, Jz=-J-L, D=-D)
     results = run_dmrg(model=model,lattice=lattice,s=Sz,n=n)
     # save_to_file(results, D, J, L, file)
     save_to_file(results, file)

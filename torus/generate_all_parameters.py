@@ -8,17 +8,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys
 
-def HoneyComb_lattice_model(lattice, Jx, Jy, Jz, D, hx=0., hy=0., hz=0., muJ=0., E=0., bcy="cylinder", bcx="open"):
+def HoneyComb_model(lattice, Jx, Jy, Jz, D, hx=0., hy=0., hz=0., muJ=0., E=0.):
 
     model_params = {
-        # "S": 1.5,  # Spin 3/2
-        # "lattice": "Honeycomb",
         "lattice": lattice,
-        "bc_MPS": "finite",
-        "bc_y": bcy,
-        "bc_x": bcx,
-        # "Lx": Lx,  # defines cylinder circumference
-        # "Ly": Ly,  # defines cylinder circumference
         "Jx": Jx,
         "Jy": Jy,
         "Jz": Jz,
@@ -28,7 +21,6 @@ def HoneyComb_lattice_model(lattice, Jx, Jy, Jz, D, hx=0., hy=0., hz=0., muJ=0.,
         "muJ": muJ,
         "D": D,
         "E": E,
-        "conserve": "best"   # Heisenberg coupling
     }
     model = SpinModel(model_params)
     return model
@@ -71,7 +63,7 @@ if __name__ == "__main__":
     print("L_max: ", L_max)
 
     spinSite = SpinSite(S=1.5, conserve='Sz')
-    lattice = Honeycomb(Lx=Lx, Ly=Ly, sites=spinSite, bc='periodic')
+    lattice = Honeycomb(Lx=Lx, Ly=Ly, sites=spinSite, bc=['periodic', 'periodic'], bc_MPS='finite')
     save_lattice(lattice, Lx, Ly)
     filename = "parameters_Lx=" + str(Lx) + "_Ly=" + str(Ly) + "_D=" + str(D) + ".csv"
     file = open(filename,"w+")
@@ -79,9 +71,7 @@ if __name__ == "__main__":
     # Note, that below we are passing negative values of the above parameter, because
     # the defnition of Hamiltonian in SpinModel is different from the Hamiltonian defined
     # in the article, that we are basing on.
-    # bcy can take values: "cylinder" / "ladder"
-    # bcx can take values "periodic" / "open"
-    model = HoneyComb_lattice_model(lattice=lattice, Jx=-1, Jy=-1, Jz=-1, D=-1, bcy="ladder", bcx="periodic")
+    model = HoneyComb_model(lattice=lattice, Jx=-1, Jy=-1, Jz=-1, D=-1)
 
     N_sites = model.lat.N_sites
     sectors = []

@@ -13,12 +13,12 @@ mkdir "parameters_${D}_${J}_${L}"
 cd "parameters_${D}_${J}_${L}"
 finished_params_filename="../$finished_params_filename"
 
-NAME=`echo "DMRG_${Lx}_${Ly}_${D}_${J}_${L}_${Sz}"`
+NAME=`echo "torus_DMRG_${Lx}_${Ly}_${D}_${J}_${L}_${Sz}"`
 
 PBS="#!/bin/bash\n\
 #PBS -N ${NAME}\n\
-#PBS -l walltime=03:00:00\n\
-#PBS -l select=1:ncpus=8:mem=15000MB\n\
+#PBS -l walltime=01:00:00\n\
+#PBS -l select=1:ncpus=8:mem=500MB\n\
 #PBS -l software=one_sector_dmrg.py\n\
 #PBS -m n\n\
 cd \$PBS_O_WORKDIR\n\
