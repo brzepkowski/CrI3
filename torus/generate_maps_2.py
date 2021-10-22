@@ -28,7 +28,7 @@ def plot_2D_map(data, colormap_name, title, x_min, x_max, x_label, y_min, y_max,
     if visible_sidebar:
         fig.colorbar(im, ax=ax)
 
-    plt.grid()
+    # plt.grid()
     plt.savefig(target_filename)
     plt.close()
 
@@ -52,7 +52,7 @@ def plot_2D_map_classical_results(data, colormap_name, title, x_min, x_max, x_la
         cbar = fig.colorbar(cax, ticks=[1.375, 2.125, 2.875, 3.625])
         cbar.ax.set_yticklabels(["FM | Z", "AF | Z", "FM | XY", "AF | XY"])
 
-    plt.grid()
+    # plt.grid()
     plt.savefig(target_filename)
     plt.close()
 
@@ -79,7 +79,7 @@ def plot_2D_map_hard_boundaries(data, colormap_name, title, x_min, x_max, x_labe
     if visible_sidebar:
         fig.colorbar(cax, ax=ax)
 
-    plt.grid()
+    # plt.grid()
     plt.savefig(target_filename)
     plt.close()
 
@@ -110,7 +110,7 @@ def plot_2D_map_hard_boundaries_nonlinear(data, colormap_name, title, x_min, x_m
         cbar= fig.colorbar(cax, ticks=ticks)
         cbar.ax.set_yticklabels(ticks_labels)
 
-    plt.grid()
+    # plt.grid()
     plt.savefig(target_filename)
     plt.close()
 
@@ -133,6 +133,10 @@ if __name__ == "__main__":
         print("Incorrect number of arguments. Provide them in the following form:")
         print("- file with all possible parameters (e.g. succ_fin_params.csv).")
         sys.exit()
+
+    Lx = 2
+    Ly = 2
+    S = 1.5
 
     # Go through all values of the parameter and save them for future use
     all_D_values = []
@@ -287,9 +291,9 @@ if __name__ == "__main__":
             for L in all_L_values:
                 l = L_map[L]
                 # print("D: ", D, ", J: ", J, "J_map[J]: ", j, ", L: ", L, ", L_map[L]: ", l, end="")
-                print("D: ", D, ", J: ", J, ", L: ", L)
+                # print("D: ", D, ", J: ", J, ", L: ", L)
                 parameterValues = all_data[d][j][l]
-                all_min_energies[j][l] = parameterValues.min_energy
+                all_min_energies[j][l] = parameterValues.min_energy / (Lx*Ly*2) # We want to get mean energy per node
                 all_energy_gaps[j][l] = parameterValues.energy_gap
                 all_average_Sz[j][l] = parameterValues.ground_state_average_Sz
                 all_total_Sz[j][l] = parameterValues.ground_state_Sz_total
@@ -297,18 +301,16 @@ if __name__ == "__main__":
                 all_max_chis[j][l] = parameterValues.ground_state_max_chi
                 all_average_entanglement_entropies[j][l] = parameterValues.ground_state_average_entanglement_entropy
 
-                # print("\nDMRG ground state energy per node: ", parameterValues.min_energy)
-
                 #
                 # Generate results predicted by the classical theory (given via analytical functions).
                 #
 
-                # Calculate energy per unit cell
-                S = 1.5
-                E_FM_z = -2*(S**2)*D - 3*(S**2)*(J+L) # Ferromagnet in the "z" axis
-                E_AF_z = -2*(S**2)*D + 3*(S**2)*(J+L) # Antiferromagnet in the "z" axis
-                E_FM_xy = -3*(S**2)*J # Ferromagnet in the "xy" plane
-                E_AF_xy = 3*(S**2)*J # Antiferromagnet in the "xy" plane
+                # Calculate the total energy
+
+                E_FM_z = -2*(S**2)*D*Lx*Ly - 3*(S**2)*(J+L)*Lx*Ly # Ferromagnet in the "z" axis
+                E_AF_z = -2*(S**2)*D*Lx*Ly + 3*(S**2)*(J+L)*Lx*Ly # Antiferromagnet in the "z" axis
+                E_FM_xy = -3*(S**2)*J*Lx*Ly # Ferromagnet in the "xy" plane
+                E_AF_xy = 3*(S**2)*J*Lx*Ly # Antiferromagnet in the "xy" plane
 
                 classical_energies = [E_FM_z, E_AF_z, E_FM_xy, E_AF_xy]
                 classical_ground_state_energy = min(classical_energies)
@@ -322,23 +324,23 @@ if __name__ == "__main__":
                 elif classical_ground_state_energy == E_AF_xy:
                     all_classical_ground_state_phases[j][l] = 4
 
-                # Energies calculated above are computed just for one unit cell.
-                # To get an energy per node in the lattice we need to divide it by 2.
-                classical_ground_state_energy /= 2
+                # to get energy per node we need to divide the total energy by
+                # the number of nodes in the lattice: 2 * Lx * Ly (2 comes from the
+                # fact, that we have two nodes in each unit cell)
+                classical_ground_state_energy /= 2*Lx*Ly
                 all_classical_ground_state_energies[j][l] = classical_ground_state_energy
-                # Below we are dividing the groundstate energy by 8 to get energy per node (for a 2x2 lattice we have 8 nodes)
-                all_differences_quantum_classical_energies[j][l] = (parameterValues.min_energy/8) - classical_ground_state_energy
-                # if not isclose(classical_ground_state_energy, 0.0) and not isclose(parameterValues.min_energy, 0.0):
-                #     all_differences_quantum_classical_energies[j][l] /= (abs(classical_ground_state_energy) + abs(parameterValues.min_energy))
+                all_differences_quantum_classical_energies[j][l] = (parameterValues.min_energy / (Lx*Ly*2)) - classical_ground_state_energy
+                # if not isclose(classical_ground_state_energy, 0.0) and not isclose(parameterValues.min_energy / (Lx*Ly*2), 0.0):
+                #     all_differences_quantum_classical_energies[j][l] /= (abs(classical_ground_state_energy) + abs(parameterValues.min_energy / (Lx*Ly*2)))
 
                 # print(" -> ", all_classical_ground_state_phases[j][l])
-                print("Classical ground state energy: ", classical_ground_state_energy)
-                print("DMRG ground state energy: ", parameterValues.min_energy/8)
-                if classical_ground_state_energy < parameterValues.min_energy/8:
+                # print("Classical ground state energy: ", classical_ground_state_energy)
+                # print("DMRG ground state energy: ", parameterValues.min_energy / (Lx*Ly*2))
+                if classical_ground_state_energy < parameterValues.min_energy / (Lx*Ly*2):
                     print("D: ", D, ", J: ", J, ", L: ", L)
-                    print("E_DMRG: ", parameterValues.min_energy/8)
+                    print("E_DMRG: ", parameterValues.min_energy / (Lx*Ly*2))
                     print("E_CLAS: ", classical_ground_state_energy)
-                    print("E_DMRG - E_CLAS: ", (parameterValues.min_energy/8) - classical_ground_state_energy)
+                    print("E_DMRG - E_CLAS: ", (parameterValues.min_energy / (Lx*Ly*2)) - classical_ground_state_energy)
                     print()
 
         min_L = all_L_values[0]
@@ -380,29 +382,18 @@ if __name__ == "__main__":
         else:
             visible_sidebar = False
 
-        # Generate maps
-        # plot_2D_map(np.asarray(all_min_energies).T, 'viridis', "Ground state energy", min_J, max_J, "J", min_L, max_L, "L", "D="+str(D)+"_ground_state_energy.pdf")
-        # plot_2D_map(np.asarray(all_energy_gaps).T, 'magma', "Energy gap", min_J, max_J, "J", min_L, max_L, "L", "D="+str(D)+"_energy_gap.pdf")
-        # plot_2D_map_hard_boundaries(np.asarray(all_average_Sz).T, 'inferno', "Average value of $S_z$", min_J, max_J, "J", min_L, max_L, "L", -1.5, 1.5, "D="+str(D)+"_average_Sz.pdf")
-        # plot_2D_map(np.asarray(all_total_Sz).T, 'magma', "Total value of $S_z$", min_J, max_J, "J", min_L, max_L, "L", "D="+str(D)+"_total_Sz.pdf")
-        # plot_2D_map(np.asarray(all_average_correlations).T, 'cividis', "Average correlation between nodes ''in-plane''", min_J, max_J, "J", min_L, max_L, "L", "D="+str(D)+"_average_correlation.pdf")
-        # plot_2D_map(np.asarray(all_max_chis).T, 'magma', "Max $\chi$", min_J, max_J, "J", min_L, max_L, "L", "D="+str(D)+"_max_chi.pdf")
-        # plot_2D_map(np.asarray(all_average_entanglement_entropies).T, 'viridis', "Average entanglement entropy", min_J, max_J, "J", min_L, max_L, "L", "D="+str(D)+"_average_entanglement_entropy.pdf")
-        # plot_2D_map_classical_results(np.asarray(all_classical_ground_state_phases).T, 'viridis', "Classical ground state phsae", min_J, max_J, "J", min_L, max_L, "L", "D="+str(D)+"_classical_groundstate_phase.pdf")
-        # plot_2D_map(np.asarray(all_classical_ground_state_energies).T, 'inferno', "Classical groundstate energy", min_J, max_J, "J", min_L, max_L, "L", "D="+str(D)+"_classical_groundstate_energy.pdf")
-        # plot_2D_map(np.asarray(all_differences_quantum_classical_energies).T, 'magma', "$E_{classical} - E_{DMRG}$", min_J, max_J, "J", min_L, max_L, "L", "D="+str(D)+"_classical_quantum_differences.pdf")
-
         # Generate maps (version with hard-coded vmin and vax, so that the plots are scaled appropriately)
-        plot_2D_map_hard_boundaries(np.asarray(all_min_energies).T, 'viridis', "D = " + str(D), min_J, max_J, "J", min_L, max_L, "$\lambda$", -30.0, 0.0, "D="+str(D)+"_ground_state_energy.pdf", visible_sidebar=visible_sidebar) # Ground state energy
-        plot_2D_map_hard_boundaries(np.asarray(all_energy_gaps).T, 'magma', "D = " + str(D), min_J, max_J, "J", min_L, max_L, "$\lambda$", 0.0, 4.4, "D="+str(D)+"_energy_gap.pdf", visible_sidebar=visible_sidebar) # Energy gap
+        plot_2D_map_hard_boundaries(np.asarray(all_min_energies).T, 'viridis', "D = " + str(D), min_J, max_J, "J", min_L, max_L, "$\lambda$", -4.5, 0, "D="+str(D)+"_ground_state_energy.pdf", visible_sidebar=visible_sidebar) # Ground state energy
+        plot_2D_map_hard_boundaries(np.asarray(all_energy_gaps).T, 'magma', "D = " + str(D), min_J, max_J, "J", min_L, max_L, "$\lambda$", 0.0, 4.85, "D="+str(D)+"_energy_gap.pdf", visible_sidebar=visible_sidebar) # Energy gap
         plot_2D_map_hard_boundaries(np.asarray(all_average_Sz).T, 'inferno', "D = " + str(D), min_J, max_J, "J", min_L, max_L, "$\lambda$", -1.5, 1.5, "D="+str(D)+"_average_Sz.pdf", visible_sidebar=visible_sidebar) # Average value of Sz
         plot_2D_map_hard_boundaries_nonlinear(np.asarray(all_total_Sz).T, 'magma', "D = " + str(D), min_J, max_J, "J", min_L, max_L, "$\lambda$", -12, 12, "D="+str(D)+"_total_Sz.pdf", jump=1, visible_sidebar=visible_sidebar) # Total value of Sz
         plot_2D_map_hard_boundaries(np.asarray(all_average_correlations).T, 'cividis', "D = " + str(D), min_J, max_J, "J", min_L, max_L, "$\lambda$", -2.5, 2.5, "D="+str(D)+"_average_correlation.pdf", visible_sidebar=visible_sidebar) # Average correlation between nodes "in-plane"
         plot_2D_map_hard_boundaries(np.asarray(all_max_chis).T, 'magma', "D = " + str(D), min_J, max_J, "J", min_L, max_L, "$\lambda$", 0, 256, "D="+str(D)+"_max_chi.pdf", visible_sidebar=visible_sidebar) # Max chi
         plot_2D_map_hard_boundaries(np.asarray(all_average_entanglement_entropies).T, 'viridis', "D = " + str(D), min_J, max_J, "J", min_L, max_L, "$\lambda$", 0.0, 2.0, "D="+str(D)+"_average_entanglement_entropy.pdf", visible_sidebar=visible_sidebar) # Average antanglement entropy
         plot_2D_map_classical_results(np.asarray(all_classical_ground_state_phases).T, 'viridis', "D = " + str(D), min_J, max_J, "J", min_L, max_L, "$\lambda$", "D="+str(D)+"_classical_groundstate_phase.pdf", visible_sidebar=visible_sidebar) # Classical groundstate phase
-        plot_2D_map_hard_boundaries(np.asarray(all_classical_ground_state_energies).T, 'inferno', "D = " + str(D), min_J, max_J, "J", min_L, max_L, "$\lambda$", -3.6, 0.0, "D="+str(D)+"_classical_groundstate_energy.pdf", visible_sidebar=visible_sidebar) # Classical groundstate energy
-        plot_2D_map_hard_boundaries(np.asarray(all_differences_quantum_classical_energies).T, 'magma', "D = " + str(D), min_J, max_J, "J", min_L, max_L, "$\lambda$", -0.35, 0.0, "D="+str(D)+"_quantum_classical_energy_differences.pdf", visible_sidebar=visible_sidebar) # Differences between energies in classical and quantum (DMRG) cases
+        plot_2D_map_hard_boundaries(np.asarray(all_classical_ground_state_energies).T, 'inferno', "D = " + str(D), min_J, max_J, "J", min_L, max_L, "$\lambda$", -4.275, 0.0, "D="+str(D)+"_classical_groundstate_energy.pdf", visible_sidebar=visible_sidebar) # Classical groundstate energy
+        plot_2D_map_hard_boundaries(np.asarray(all_differences_quantum_classical_energies).T, 'RdBu_r', "D = " + str(D), min_J, max_J, "J", min_L, max_L, "$\lambda$", -0.5, 0.5, "D="+str(D)+"_quantum_classical_energy_differences.pdf", visible_sidebar=visible_sidebar) # Differences between energies in classical and quantum (DMRG) cases
+
 
         if np.min(all_min_energies) < groundstate_energy_min:
             groundstate_energy_min = np.min(all_min_energies)

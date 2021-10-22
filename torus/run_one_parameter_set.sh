@@ -22,7 +22,7 @@ PBS="#!/bin/bash\n\
 #PBS -l software=one_sector_dmrg.py\n\
 #PBS -m n\n\
 cd \$PBS_O_WORKDIR\n\
-python3 -W ignore ../one_sector_dmrg.py $Lx $Ly $D $J $L $Sz $N $finished_params_filename"
+python3 -W ignore ../one_sector_dmrg.py $Lx $Ly $D $J $L $Sz $N $finished_params_filename >& torus_DMRG_${Lx}_${Ly}_${D}_${J}_${L}_${Sz}.txt"
 
 # Echo the string PBS to the function qsub, which submits it as a cluster job for you
 # A small delay is included to avoid overloading the submission process

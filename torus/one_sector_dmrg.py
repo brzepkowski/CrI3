@@ -5,7 +5,7 @@ from tenpy.networks.site import SpinSite
 from tenpy.models.lattice import Honeycomb
 from tenpy.models.spins import SpinModel
 from tenpy.networks.mps import MPS
-from tenpy.algorithms import dmrg
+from tenpy.algorithms.dmrg import TwoSiteDMRGEngine
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap, LinearSegmentedColormap
@@ -49,7 +49,7 @@ def prep_initial_state(N, Sz):
     return psi
 
 # n - liczba stanów wzbudzonych
-def run_dmrg(model,lattice,s,n=1,chi_max=1000,svd_min=1.e-10,mixer=True,generate_maps=True):
+def run_dmrg(model,lattice,s,n=1,chi_max=1000,svd_min=1.e-10,mixer=True):
     N_sites = model.lat.N_sites
     results = []
     # for i in range(3*N_sites+1):
@@ -64,14 +64,19 @@ def run_dmrg(model,lattice,s,n=1,chi_max=1000,svd_min=1.e-10,mixer=True,generate
         print("====== State:", j)
         print("==============================")
         State = prep_initial_state(N_sites, s)
-        psi = MPS.from_product_state(sites, State, "finite")
-        mixer_params = {}
-        dmrg_params = {"trunc_params": {"chi_max": chi_max, "svd_min": svd_min}, "mixer": mixer,"mixer_params":mixer_params,
-            'combine': True,"orthogonal_to": excited_states}
-        info = dmrg.run(psi, model, dmrg_params)
-
-        # Energy
-        energy = info['E']
+        psi = MPS.from_product_state(sites, State, model.lat.bc_MPS)
+        dmrg_params = {
+            "trunc_params": {
+                "chi_max": chi_max,
+                "svd_min": svd_min
+            },
+            "mixer": mixer,
+            'mixer_params': {},
+            "orthogonal_to": excited_states
+        }
+        eng = TwoSiteDMRGEngine(psi, model, dmrg_params)
+        energy, psi = eng.run()
+        info = eng.sweep_stats
 
         #  Sz (averae and total)
         Sz_per_site = psi.expectation_value("Sz")
@@ -92,7 +97,7 @@ def run_dmrg(model,lattice,s,n=1,chi_max=1000,svd_min=1.e-10,mixer=True,generate
         average_correlation /= len(nearest_neighbors)
 
         # Max chi
-        max_chi = max(info['sweep_statistics']['max_chi'])
+        max_chi = max(info['max_chi'])
 
         # Calculate the (half-chain) entanglement entropy for all NONTRIVIAL BONDS.
         # Above probably means, that we will not calculate entanglement entropy
@@ -177,7 +182,7 @@ if __name__ == "__main__":
     # the defnition of Hamiltonian in SpinModel is different from the Hamiltonian defined
     # in the article, that we are basing on.
     model = HoneyComb_model(lattice=lattice, Jx=-J, Jy=-J, Jz=-J-L, D=-D)
-    results = run_dmrg(model=model,lattice=lattice,s=Sz,n=n)
+    results = run_dmrg(model=model,lattice=lattice,s=Sz,n=n,chi_max=2000)
     # save_to_file(results, D, J, L, file)
     save_to_file(results, file)
 
