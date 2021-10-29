@@ -108,6 +108,9 @@ def run_dmrg(model,lattice,s,n=1,chi_max=1000,svd_min=1.e-10,mixer=True):
         # Save results
         results.append([energy, average_Sz, average_correlation, max_chi, average_entanglement_entropy, Sz_total, Sz_per_site_str])
         excited_states.append(psi)
+
+        print(psi.correlation_function("Sz","Sz"))
+
         if j >= max_permutations - 1:
             print("-----------> Weszło i przerwało <------------")
             break
