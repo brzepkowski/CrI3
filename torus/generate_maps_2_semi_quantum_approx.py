@@ -12,9 +12,12 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap, LinearSegmentedColormap
+from math import isclose
 import sys
 import glob, os
 import pprint
+
+from semi_quantum_approximation import semi_quantum_approximation
 
 def plot_2D_map(data, colormap_name, title, x_min, x_max, x_label, y_min, y_max, y_label, target_filename, visible_sidebar=False):
     vmin = np.asarray(data).min()
@@ -24,14 +27,14 @@ def plot_2D_map(data, colormap_name, title, x_min, x_max, x_label, y_min, y_max,
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
     im = ax.imshow(data, cmap=plt.get_cmap(colormap_name), vmin=vmin, vmax=vmax, extent=(x_min, x_max, y_min, y_max))
-
     if visible_sidebar:
         fig.colorbar(im, ax=ax)
 
+    # plt.grid()
     plt.savefig(target_filename)
     plt.close()
 
-def plot_2D_map_classical_results(data, colormap_name, title, x_min, x_max, x_label, y_min, y_max, y_label, target_filename, visible_sidebar=False):
+def plot_2D_map_semi_quantum_results(data, colormap_name, title, x_min, x_max, x_label, y_min, y_max, y_label, target_filename, visible_sidebar=False):
     vmin = 1
     vmax = 4
     fig, ax = plt.subplots()
@@ -40,17 +43,18 @@ def plot_2D_map_classical_results(data, colormap_name, title, x_min, x_max, x_la
     ax.set_ylabel(y_label)
     cax = ax.imshow(data, cmap=plt.get_cmap(colormap_name, 4), vmin=vmin, vmax=vmax, extent=(x_min, x_max, y_min, y_max))
     # Set custom x and y ticks on the axes
-    x_label_list = ['-0.5', '0.5']
-    y_label_list = ['-0.5', '0.5']
-    ax.set_xticks([-0.25,0.25])
+    x_label_list = ['-0.5', '-0.25', '0.0', '0.25', '0.5']
+    y_label_list = ['-0.5', '-0.25', '0.0', '0.25', '0.5']
+    ax.set_xticks([-0.475, -0.2375, 0.0, 0.2375, 0.475])
     ax.set_xticklabels(x_label_list)
-    ax.set_yticks([-0.25,0.25])
+    ax.set_yticks([-0.475, -0.2375, 0.0, 0.2375, 0.475])
     ax.set_yticklabels(y_label_list)
 
     if visible_sidebar:
         cbar = fig.colorbar(cax, ticks=[1.375, 2.125, 2.875, 3.625])
         cbar.ax.set_yticklabels(["FM | Z", "AF | Z", "FM | XY", "AF | XY"])
 
+    # plt.grid()
     plt.savefig(target_filename)
     plt.close()
 
@@ -60,18 +64,24 @@ def plot_2D_map_hard_boundaries(data, colormap_name, title, x_min, x_max, x_labe
     ax.set_title(title)
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
-    cax = ax.imshow(data, cmap=plt.get_cmap(colormap_name), vmin=vmin, vmax=vmax, extent=(x_min, x_max, y_min, y_max))
+
+    if colormap_name != None:
+        cax = ax.imshow(data, cmap=plt.get_cmap(colormap_name), vmin=vmin, vmax=vmax, extent=(x_min, x_max, y_min, y_max))
+    else:
+        cax = ax.imshow(data, cmap=plt.cm.seismic, vmin=vmin, vmax=vmax, extent=(x_min, x_max, y_min, y_max))
+
     # Set custom x and y ticks on the axes
-    x_label_list = ['-0.5', '0.5']
-    y_label_list = ['-0.5', '0.5']
-    ax.set_xticks([-0.25,0.25])
+    x_label_list = ['-0.5', '-0.25', '0.0', '0.25', '0.5']
+    y_label_list = ['-0.5', '-0.25', '0.0', '0.25', '0.5']
+    ax.set_xticks([-0.475, -0.2375, 0.0, 0.2375, 0.475])
     ax.set_xticklabels(x_label_list)
-    ax.set_yticks([-0.25,0.25])
+    ax.set_yticks([-0.475, -0.2375, 0.0, 0.2375, 0.475])
     ax.set_yticklabels(y_label_list)
 
     if visible_sidebar:
         fig.colorbar(cax, ax=ax)
 
+    # plt.grid()
     plt.savefig(target_filename)
     plt.close()
 
@@ -85,22 +95,24 @@ def plot_2D_map_hard_boundaries_nonlinear(data, colormap_name, title, x_min, x_m
     ticks_labels = list(np.arange(vmin, vmax + jump, jump))
     ticks = list(np.linspace(vmin + (jump/2), vmax - (jump/2), len(ticks_labels)))
     cax = ax.imshow(data, cmap=plt.get_cmap(colormap_name, len(ticks_labels)), vmin=vmin, vmax=vmax, extent=(x_min, x_max, y_min, y_max))
+
     # Set custom x and y ticks on the axes
-    x_label_list = ['-0.5', '0.5']
-    y_label_list = ['-0.5', '0.5']
-    ax.set_xticks([-0.25,0.25])
+    x_label_list = ['-0.5', '-0.25', '0.0', '0.25', '0.5']
+    y_label_list = ['-0.5', '-0.25', '0.0', '0.25', '0.5']
+    ax.set_xticks([-0.475, -0.2375, 0.0, 0.2375, 0.475])
     ax.set_xticklabels(x_label_list)
-    ax.set_yticks([-0.25,0.25])
+    ax.set_yticks([-0.475, -0.2375, 0.0, 0.2375, 0.475])
     ax.set_yticklabels(y_label_list)
 
     # Reinitialize "ticks" and "ticks_labels", so that the plot are more readable
-    ticks_labels = list(np.arange(vmin, vmax + jump, jump*3))
+    ticks_labels = list(np.arange(vmin, vmax + jump, jump*2))
     ticks = list(np.linspace(vmin + (jump/2), vmax - (jump/2), len(ticks_labels)))
 
     if visible_sidebar:
         cbar= fig.colorbar(cax, ticks=ticks)
         cbar.ax.set_yticklabels(ticks_labels)
 
+    # plt.grid()
     plt.savefig(target_filename)
     plt.close()
 
@@ -123,6 +135,10 @@ if __name__ == "__main__":
         print("Incorrect number of arguments. Provide them in the following form:")
         print("- file with all possible parameters (e.g. succ_fin_params.csv).")
         sys.exit()
+
+    Lx = 2
+    Ly = 2
+    S = 1.5
 
     # Go through all values of the parameter and save them for future use
     all_D_values = []
@@ -255,10 +271,10 @@ if __name__ == "__main__":
         max_chi_max = -np.inf
         average_entanglement_min = np.inf
         average_entanglement_max = -np.inf
-        classical_groundstate_energy_min = np.inf
-        classical_groundstate_energy_max = -np.inf
-        quantum_classical_energy_differences_min = np.inf
-        quantum_classical_energy_differences_max = -np.inf
+        semi_quantum_groundstate_energy_min = np.inf
+        semi_quantum_groundstate_energy_max = -np.inf
+        quantum_semi_quantum_energy_differences_min = np.inf
+        quantum_semi_quantum_energy_differences_max = -np.inf
 
 
         d = D_map[D]
@@ -269,17 +285,17 @@ if __name__ == "__main__":
         all_average_correlations = [[0.0 for l in range(len(all_L_values))] for j in range(len(all_J_values))]
         all_max_chis = [[0.0 for l in range(len(all_L_values))] for j in range(len(all_J_values))]
         all_average_entanglement_entropies = [[0.0 for l in range(len(all_L_values))] for j in range(len(all_J_values))]
-        all_classical_ground_state_phases = [[0.0 for l in range(len(all_L_values))] for j in range(len(all_J_values))]
-        all_classical_ground_state_energies = [[0.0 for l in range(len(all_L_values))] for j in range(len(all_J_values))]
-        all_differences_quantum_classical_energies = [[0.0 for l in range(len(all_L_values))] for j in range(len(all_J_values))]
+        all_semi_quantum_ground_state_phases = [[0.0 for l in range(len(all_L_values))] for j in range(len(all_J_values))]
+        all_semi_quantum_ground_state_energies = [[0.0 for l in range(len(all_L_values))] for j in range(len(all_J_values))]
+        all_differences_quantum_semi_quantum_energies = [[0.0 for l in range(len(all_L_values))] for j in range(len(all_J_values))]
         for J in all_J_values:
             j = J_map[J]
             for L in all_L_values:
                 l = L_map[L]
                 # print("D: ", D, ", J: ", J, "J_map[J]: ", j, ", L: ", L, ", L_map[L]: ", l, end="")
-                print("D: ", D, ", J: ", J, ", L: ", L)
+                # print("D: ", D, ", J: ", J, ", L: ", L)
                 parameterValues = all_data[d][j][l]
-                all_min_energies[j][l] = parameterValues.min_energy
+                all_min_energies[j][l] = parameterValues.min_energy / (Lx*Ly*2) # We want to get mean energy per node
                 all_energy_gaps[j][l] = parameterValues.energy_gap
                 all_average_Sz[j][l] = parameterValues.ground_state_average_Sz
                 all_total_Sz[j][l] = parameterValues.ground_state_Sz_total
@@ -287,45 +303,27 @@ if __name__ == "__main__":
                 all_max_chis[j][l] = parameterValues.ground_state_max_chi
                 all_average_entanglement_entropies[j][l] = parameterValues.ground_state_average_entanglement_entropy
 
-                #
-                # Generate results predicted by the classical theory (given via analytical functions).
-                #
 
-                # Calculate energy per unit cell
-                S = 1.5
-                E_FM_z = -2*(S**2)*D - 3*(S**2)*(J+L) # Ferromagnet in the "z" axis
-                E_AF_z = -2*(S**2)*D + 3*(S**2)*(J+L) # Antiferromagnet in the "z" axis
-                E_FM_xy = -3*(S**2)*J # Ferromagnet in the "xy" plane
-                E_AF_xy = 3*(S**2)*J # Antiferromagnet in the "xy" plane
+                ################################################################
+                # Find predictions of a semi-quantum model
+                ################################################################
 
-                classical_energies = [E_FM_z, E_AF_z, E_FM_xy, E_AF_xy]
-                classical_ground_state_energy = min(classical_energies)
-                if classical_ground_state_energy == E_FM_z:
-                    all_classical_ground_state_phases[j][l] = 1
-                elif classical_ground_state_energy == E_AF_z:
-                    all_classical_ground_state_phases[j][l] = 2
-                elif classical_ground_state_energy == E_FM_xy:
-                    all_classical_ground_state_phases[j][l] = 3
-                elif classical_ground_state_energy == E_AF_xy:
-                    all_classical_ground_state_phases[j][l] = 4
+                semi_quantum_ground_state_energy, phase = semi_quantum_approximation(Lx, Ly, J, L, D)
+                all_semi_quantum_ground_state_phases[j][l] = phase
 
-                # Energies calculated above are computed just for one unit cell.
-                # To get an energy per node in the lattice we need to divide it by 2.
-                classical_ground_state_energy /= 2
-                all_classical_ground_state_energies[j][l] = classical_ground_state_energy
-                # Below we are dividing the groundstate energy by 32 to get energy per node (for a 4x4 lattice we have 32 nodes)
-                all_differences_quantum_classical_energies[j][l] = (parameterValues.min_energy/32) - classical_ground_state_energy
-                # if not isclose(classical_ground_state_energy, 0.0) and not isclose(parameterValues.min_energy, 0.0):
-                #     all_differences_quantum_classical_energies[j][l] /= (abs(classical_ground_state_energy) + abs(parameterValues.min_energy))
+                # to get energy per node we need to divide the total energy by
+                # the number of nodes in the lattice: 2 * Lx * Ly (2 comes from the
+                # fact, that we have two nodes in each unit cell)
+                semi_quantum_ground_state_energy /= 2*Lx*Ly
+                all_semi_quantum_ground_state_energies[j][l] = semi_quantum_ground_state_energy
+                all_differences_quantum_semi_quantum_energies[j][l] = (parameterValues.min_energy / (Lx*Ly*2)) - semi_quantum_ground_state_energy
 
-                # print(" -> ", all_classical_ground_state_phases[j][l])
-                print("Classical ground state energy: ", classical_ground_state_energy)
-                print("DMRG ground state energy: ", parameterValues.min_energy/32)
-                if classical_ground_state_energy < parameterValues.min_energy/32:
+
+                if semi_quantum_ground_state_energy < parameterValues.min_energy / (Lx*Ly*2):
                     print("D: ", D, ", J: ", J, ", L: ", L)
-                    print("E_DMRG: ", parameterValues.min_energy/32)
-                    print("E_CLAS: ", classical_ground_state_energy)
-                    print("E_DMRG - E_CLAS: ", (parameterValues.min_energy/32) - classical_ground_state_energy)
+                    print("E_DMRG: ", parameterValues.min_energy / (Lx*Ly*2))
+                    print("E_SEMI_QUANT: ", semi_quantum_ground_state_energy)
+                    print("E_DMRG - E_CLAS: ", (parameterValues.min_energy / (Lx*Ly*2)) - semi_quantum_ground_state_energy)
                     print()
 
         min_L = all_L_values[0]
@@ -352,45 +350,33 @@ if __name__ == "__main__":
             row.reverse()
         for row in all_average_entanglement_entropies:
             row.reverse()
-        for row in all_classical_ground_state_phases:
+        for row in all_semi_quantum_ground_state_phases:
             row.reverse()
 
         ########################################################################
-        for row in all_classical_ground_state_energies:
+        for row in all_semi_quantum_ground_state_energies:
             row.reverse()
-        for row in all_differences_quantum_classical_energies:
+        for row in all_differences_quantum_semi_quantum_energies:
             row.reverse()
         ########################################################################
-
 
         if D == D_max:
             visible_sidebar = True
         else:
             visible_sidebar = False
 
-        # Generate maps
-        # plot_2D_map(np.asarray(all_min_energies).T, 'viridis', "Ground state energy", min_J, max_J, "J", min_L, max_L, "L", "D="+str(D)+"_ground_state_energy.pdf")
-        # plot_2D_map(np.asarray(all_energy_gaps).T, 'magma', "Energy gap", min_J, max_J, "J", min_L, max_L, "L", "D="+str(D)+"_energy_gap.pdf")
-        # plot_2D_map_hard_boundaries(np.asarray(all_average_Sz).T, 'inferno', "Average value of $S_z$", min_J, max_J, "J", min_L, max_L, "L", -1.5, 1.5, "D="+str(D)+"_average_Sz.pdf")
-        # plot_2D_map(np.asarray(all_total_Sz).T, 'magma', "Total value of $S_z$", min_J, max_J, "J", min_L, max_L, "L", "D="+str(D)+"_total_Sz.pdf")
-        # plot_2D_map(np.asarray(all_average_correlations).T, 'cividis', "Average correlation between nodes ''in-plane''", min_J, max_J, "J", min_L, max_L, "L", "D="+str(D)+"_average_correlation.pdf")
-        # plot_2D_map(np.asarray(all_max_chis).T, 'magma', "Max $\chi$", min_J, max_J, "J", min_L, max_L, "L", "D="+str(D)+"_max_chi.pdf")
-        # plot_2D_map(np.asarray(all_average_entanglement_entropies).T, 'viridis', "Average entanglement entropy", min_J, max_J, "J", min_L, max_L, "L", "D="+str(D)+"_average_entanglement_entropy.pdf")
-        # plot_2D_map_classical_results(np.asarray(all_classical_ground_state_phases).T, 'viridis', "Classical ground state phsae", min_J, max_J, "J", min_L, max_L, "L", "D="+str(D)+"_classical_groundstate_phase.pdf")
-        # plot_2D_map(np.asarray(all_classical_ground_state_energies).T, 'inferno', "Classical groundstate energy", min_J, max_J, "J", min_L, max_L, "L", "D="+str(D)+"_classical_groundstate_energy.pdf")
-        # plot_2D_map(np.asarray(all_differences_classical_quantum_energies).T, 'magma', "$E_{classical} - E_{DMRG}$", min_J, max_J, "J", min_L, max_L, "L", "D="+str(D)+"_classical_quantum_differences.pdf")
-
         # Generate maps (version with hard-coded vmin and vax, so that the plots are scaled appropriately)
-        plot_2D_map_hard_boundaries(np.asarray(all_min_energies).T, 'viridis', "D = " + str(D), min_J, max_J, "J", min_L, max_L, "$\lambda$", -101, -44, "D="+str(D)+"_ground_state_energy.pdf", visible_sidebar=visible_sidebar)
-        plot_2D_map_hard_boundaries(np.asarray(all_energy_gaps).T, 'magma', "D = " + str(D), min_J, max_J, "J", min_L, max_L, "$\lambda$", 0.0, 1.6, "D="+str(D)+"_energy_gap.pdf", visible_sidebar=visible_sidebar)
-        plot_2D_map_hard_boundaries(np.asarray(all_average_Sz).T, 'inferno', "D = " + str(D), min_J, max_J, "J", min_L, max_L, "$\lambda$", -1.5, 0, "D="+str(D)+"_average_Sz.pdf", visible_sidebar=visible_sidebar)
-        plot_2D_map_hard_boundaries_nonlinear(np.asarray(all_total_Sz).T, 'magma', "D = " + str(D), min_J, max_J, "J", min_L, max_L, "$\lambda$", -48, 0, "D="+str(D)+"_total_Sz.pdf", jump=1, visible_sidebar=visible_sidebar)
-        plot_2D_map_hard_boundaries(np.asarray(all_average_correlations).T, 'cividis', "D = " + str(D), min_J, max_J, "J", min_L, max_L, "$\lambda$", -2.5, 2.5, "D="+str(D)+"_average_correlation.pdf", visible_sidebar=visible_sidebar)
-        plot_2D_map_hard_boundaries(np.asarray(all_max_chis).T, 'magma', "D = " + str(D), min_J, max_J, "J", min_L, max_L, "$\lambda$", 0, 1000, "D="+str(D)+"_max_chi.pdf", visible_sidebar=visible_sidebar)
-        plot_2D_map_hard_boundaries(np.asarray(all_average_entanglement_entropies).T, 'viridis', "D = " + str(D), min_J, max_J, "J", min_L, max_L, "$\lambda$", 0.0, 2.15, "D="+str(D)+"_average_entanglement_entropy.pdf", visible_sidebar=visible_sidebar)
-        plot_2D_map_classical_results(np.asarray(all_classical_ground_state_phases).T, 'viridis', "D = " + str(D), min_J, max_J, "J", min_L, max_L, "$\lambda$", "D="+str(D)+"_classical_groundstate_phase.pdf", visible_sidebar=visible_sidebar)
-        plot_2D_map_hard_boundaries(np.asarray(all_classical_ground_state_energies).T, 'inferno', "D = " + str(D), min_J, max_J, "J", min_L, max_L, "$\lambda$", -51.2, -24.0, "D="+str(D)+"_classical_groundstate_energy.pdf", visible_sidebar=visible_sidebar)
-        plot_2D_map_hard_boundaries(np.asarray(all_differences_quantum_classical_energies).T, 'magma', "D = " + str(D), min_J, max_J, "J", min_L, max_L, "$\lambda$", -1.54, 0, "D="+str(D)+"_quantum_classical_energy_differences.pdf", visible_sidebar=visible_sidebar) # Differences between energies in classical and quantum (DMRG) cases
+        plot_2D_map_hard_boundaries(np.asarray(all_min_energies).T, 'viridis', "D = " + str(D), min_J, max_J, "J", min_L, max_L, "$\lambda$", -4.5, 0, "D="+str(D)+"_ground_state_energy.pdf", visible_sidebar=visible_sidebar) # Ground state energy
+        plot_2D_map_hard_boundaries(np.asarray(all_energy_gaps).T, 'magma', "D = " + str(D), min_J, max_J, "J", min_L, max_L, "$\lambda$", 0.0, 4.85, "D="+str(D)+"_energy_gap.pdf", visible_sidebar=visible_sidebar) # Energy gap
+        plot_2D_map_hard_boundaries(np.asarray(all_average_Sz).T, 'inferno', "D = " + str(D), min_J, max_J, "J", min_L, max_L, "$\lambda$", -1.5, 1.5, "D="+str(D)+"_average_Sz.pdf", visible_sidebar=visible_sidebar) # Average value of Sz
+        plot_2D_map_hard_boundaries_nonlinear(np.asarray(all_total_Sz).T, 'magma', "D = " + str(D), min_J, max_J, "J", min_L, max_L, "$\lambda$", -12, 12, "D="+str(D)+"_total_Sz.pdf", jump=1, visible_sidebar=visible_sidebar) # Total value of Sz
+        plot_2D_map_hard_boundaries(np.asarray(all_average_correlations).T, 'cividis', "D = " + str(D), min_J, max_J, "J", min_L, max_L, "$\lambda$", -2.5, 2.5, "D="+str(D)+"_average_correlation.pdf", visible_sidebar=visible_sidebar) # Average correlation between nodes "in-plane"
+        plot_2D_map_hard_boundaries(np.asarray(all_max_chis).T, 'magma', "D = " + str(D), min_J, max_J, "J", min_L, max_L, "$\lambda$", 0, 256, "D="+str(D)+"_max_chi.pdf", visible_sidebar=visible_sidebar) # Max chi
+        plot_2D_map_hard_boundaries(np.asarray(all_average_entanglement_entropies).T, 'viridis', "D = " + str(D), min_J, max_J, "J", min_L, max_L, "$\lambda$", 0.0, 2.0, "D="+str(D)+"_average_entanglement_entropy.pdf", visible_sidebar=visible_sidebar) # Average antanglement entropy
+        plot_2D_map_semi_quantum_results(np.asarray(all_semi_quantum_ground_state_phases).T, 'viridis', "D = " + str(D), min_J, max_J, "J", min_L, max_L, "$\lambda$", "D="+str(D)+"_semi_quantum_groundstate_phase.pdf", visible_sidebar=visible_sidebar) # Semi-quantum groundstate phase
+        plot_2D_map_hard_boundaries(np.asarray(all_semi_quantum_ground_state_energies).T, 'inferno', "D = " + str(D), min_J, max_J, "J", min_L, max_L, "$\lambda$", -4.275, 0.3, "D="+str(D)+"_semi_quantum_groundstate_energy.pdf", visible_sidebar=visible_sidebar) # Semi-quantum groundstate energy
+        plot_2D_map_hard_boundaries(np.asarray(all_differences_quantum_semi_quantum_energies).T, 'RdBu_r', "D = " + str(D), min_J, max_J, "J", min_L, max_L, "$\lambda$", -0.5, 0.5, "D="+str(D)+"_quantum_semi_quantum_energy_differences.pdf", visible_sidebar=visible_sidebar) # Differences between energies in semi-quantum and quantum (DMRG) cases
+
 
         if np.min(all_min_energies) < groundstate_energy_min:
             groundstate_energy_min = np.min(all_min_energies)
@@ -420,25 +406,24 @@ if __name__ == "__main__":
             average_entanglement_min = np.min(all_average_entanglement_entropies)
         if np.max(all_average_entanglement_entropies) > average_entanglement_max:
             average_entanglement_max = np.max(all_average_entanglement_entropies)
-        if np.min(all_classical_ground_state_energies) < classical_groundstate_energy_min:
-            classical_groundstate_energy_min = np.min(all_classical_ground_state_energies)
-        if np.max(all_classical_ground_state_energies) > classical_groundstate_energy_max:
-            classical_groundstate_energy_max = np.max(all_classical_ground_state_energies)
-        if np.min(all_differences_quantum_classical_energies) < quantum_classical_energy_differences_min:
-            quantum_classical_energy_differences_min = np.min(all_differences_quantum_classical_energies)
-        if np.max(all_differences_quantum_classical_energies) > quantum_classical_energy_differences_max:
-            quantum_classical_energy_differences_max = np.max(all_differences_quantum_classical_energies)
+        if np.min(all_semi_quantum_ground_state_energies) < semi_quantum_groundstate_energy_min:
+            semi_quantum_groundstate_energy_min = np.min(all_semi_quantum_ground_state_energies)
+        if np.max(all_semi_quantum_ground_state_energies) > semi_quantum_groundstate_energy_max:
+            semi_quantum_groundstate_energy_max = np.max(all_semi_quantum_ground_state_energies)
+        if np.min(all_differences_quantum_semi_quantum_energies) < quantum_semi_quantum_energy_differences_min:
+            quantum_semi_quantum_energy_differences_min = np.min(all_differences_quantum_semi_quantum_energies)
+        if np.max(all_differences_quantum_semi_quantum_energies) > quantum_semi_quantum_energy_differences_max:
+            quantum_semi_quantum_energy_differences_max = np.max(all_differences_quantum_semi_quantum_energies)
 
-
-    print()
-    print("#"*50)
-    print("Ground state energy: [", groundstate_energy_min, " , ", groundstate_energy_max, "]")
-    print("Energy gap: [", energy_gap_min, " , ", energy_gap_max, "]")
-    print("Average Sz: [", average_Sz_min, " , ", average_Sz_max, "]")
-    print("Total Sz: [", total_Sz_min, " , ", total_Sz_max, "]")
-    print("Average correlations: [", average_correlations_min, " , ", average_correlations_max, "]")
-    print("Max chi: [", max_chi_min, " , ", max_chi_max, "]")
-    print("Average entanglement entropy: [", average_entanglement_min, " , ", average_entanglement_max, "]")
-    print("Classical groundstate energy: [", classical_groundstate_energy_min, " , ", classical_groundstate_energy_max, "]")
-    print("Quantum-classical energy differences: [", quantum_classical_energy_differences_min, " , ", quantum_classical_energy_differences_max, "]")
-    print("#"*50)
+        print()
+        print("#"*50)
+        print("Ground state energy: [", groundstate_energy_min, " , ", groundstate_energy_max, "]")
+        print("Energy gap: [", energy_gap_min, " , ", energy_gap_max, "]")
+        print("Average Sz: [", average_Sz_min, " , ", average_Sz_max, "]")
+        print("Total Sz: [", total_Sz_min, " , ", total_Sz_max, "]")
+        print("Average correlations: [", average_correlations_min, " , ", average_correlations_max, "]")
+        print("Max chi: [", max_chi_min, " , ", max_chi_max, "]")
+        print("Average entanglement entropy: [", average_entanglement_min, " , ", average_entanglement_max, "]")
+        print("Semi-quantum groundstate energy: [", semi_quantum_groundstate_energy_min, " , ", semi_quantum_groundstate_energy_max, "]")
+        print("Quantum-semi_quantum energy differences: [", quantum_semi_quantum_energy_differences_min, " , ", quantum_semi_quantum_energy_differences_max, "]")
+        print("#"*50)
