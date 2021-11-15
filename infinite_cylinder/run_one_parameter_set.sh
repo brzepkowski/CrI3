@@ -6,7 +6,7 @@ D=$3
 J=$4
 L=$5
 Sz=$6
-finished_params_filename=$8
+finished_params_filename=$7
 
 mkdir "parameters_${D}_${J}_${L}"
 cd "parameters_${D}_${J}_${L}"
