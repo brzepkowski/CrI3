@@ -75,7 +75,7 @@ def plot_2D_map_semi_quantum_results(data, colormap_name, title, x_min, x_max, x
     plt.close()
 
 # We are creating additional function, in which vmin and vmax are passed as an argument
-def plot_2D_map_hard_boundaries(data, colormap_name, title, x_min, x_max, x_label, y_min, y_max, y_label, vmin, vmax, target_filename, visible_y_axis=True, visible_sidebar=False):
+def plot_2D_map_hard_boundaries(data, colormap_name, title, x_min, x_max, x_label, y_min, y_max, y_label, vmin, vmax, target_filename, visible_y_axis=True, visible_sidebar=False, hatches=None):
     if visible_sidebar or visible_y_axis:
         fig, ax = plt.subplots(figsize=[11, 9.5])
     else:
@@ -94,9 +94,15 @@ def plot_2D_map_hard_boundaries(data, colormap_name, title, x_min, x_max, x_labe
     n = 8
     levels = np.linspace(vmin, vmax, n)
     if colormap_name != None:
-        cax = ax.contourf(data, levels=levels, hatches=['o', '*', '/', '\\', '-', '|', 'x', '+'], cmap=plt.get_cmap(colormap_name), vmin=vmin, vmax=vmax, extent=(x_min, x_max, y_min, y_max))
+        if hatches is None:
+            cax = ax.contourf(data, levels=levels, hatches=['o', '*', '/', '\\', '-', '|', 'x', '+'], cmap=plt.get_cmap(colormap_name), vmin=vmin, vmax=vmax, extent=(x_min, x_max, y_min, y_max))
+        else:
+            cax = ax.contourf(data, levels=levels, hatches=hatches, cmap=plt.get_cmap(colormap_name), vmin=vmin, vmax=vmax, extent=(x_min, x_max, y_min, y_max))
     else:
-        cax = ax.contourf(data, levels=levels, hatches=['o', '*', '/', '\\', '-', '|', 'x', '+'], cmap=plt.cm.seismic, vmin=vmin, vmax=vmax, extent=(x_min, x_max, y_min, y_max))
+        if hatches is None:
+            cax = ax.contourf(data, levels=levels, hatches=['o', '*', '/', '\\', '-', '|', 'x', '+'], cmap=plt.cm.seismic, vmin=vmin, vmax=vmax, extent=(x_min, x_max, y_min, y_max))
+        else:
+            cax = ax.contourf(data, levels=levels, hatches=hatches, cmap=plt.cm.seismic, vmin=vmin, vmax=vmax, extent=(x_min, x_max, y_min, y_max))
 
     # Set custom x and y ticks on the axes
     x_label_list = ['-0.5', '-0.25', '0.0', '0.25', '0.5']
@@ -405,6 +411,12 @@ if __name__ == "__main__":
         else:
             visible_y_axis = False
 
+        # Get rid of additional values in 'all_differences_quantum_semi_quantum_energies', because those are the artefacts
+        for i in range(np.shape(all_differences_quantum_semi_quantum_energies)[0]):
+            for j in range(np.shape(all_differences_quantum_semi_quantum_energies)[1]):
+                if all_differences_quantum_semi_quantum_energies[i][j] > 0:
+                    all_differences_quantum_semi_quantum_energies[i][j] = 0
+
         # Generate maps (version with hard-coded vmin and vax, so that the plots are scaled appropriately)
         # plot_2D_map_hard_boundaries(np.asarray(all_min_energies).T, 'viridis', "D = " + str(D), min_J, max_J, "J", min_L, max_L, "$\lambda$", -4.5, 0, "D="+str(D)+"_ground_state_energy.pdf", visible_y_axis=visible_y_axis, visible_sidebar=visible_sidebar) # Ground state energy
         plot_2D_map_hard_boundaries(np.asarray(all_energy_gaps).T, 'RdBu_r', "D = " + str(D), min_J, max_J, "J", min_L, max_L, "$\lambda$", 0.0, 4.85, "D="+str(D)+"_energy_gap.pdf", visible_y_axis=visible_y_axis, visible_sidebar=visible_sidebar) # Energy gap
@@ -414,7 +426,8 @@ if __name__ == "__main__":
         plot_2D_map_hard_boundaries(np.asarray(all_average_entanglement_entropies).T, 'viridis', "D = " + str(D), min_J, max_J, "J", min_L, max_L, "$\lambda$", 0.0, 2.0, "D="+str(D)+"_average_entanglement_entropy.pdf", visible_y_axis=visible_y_axis, visible_sidebar=visible_sidebar) # Average antanglement entropy
         plot_2D_map_semi_quantum_results(np.asarray(all_semi_quantum_ground_state_phases).T, 'viridis', "D = " + str(D), min_J, max_J, "J", min_L, max_L, "$\lambda$", "D="+str(D)+"_semi_quantum_groundstate_phase.pdf", visible_y_axis=visible_y_axis, visible_sidebar=visible_sidebar) # Semi-quantum groundstate phase
         # plot_2D_map_hard_boundaries(np.asarray(all_semi_quantum_ground_state_energies).T, 'inferno', "D = " + str(D), min_J, max_J, "J", min_L, max_L, "$\lambda$", -4.275, 0.3, "D="+str(D)+"_semi_quantum_groundstate_energy.pdf", visible_y_axis=visible_y_axis, visible_sidebar=visible_sidebar) # Semi-quantum groundstate energy
-        plot_2D_map_hard_boundaries(np.asarray(all_differences_quantum_semi_quantum_energies).T, 'RdBu_r', "D = " + str(D), min_J, max_J, "J", min_L, max_L, "$\lambda$", -0.5, 0.5, "D="+str(D)+"_quantum_semi_quantum_energy_differences.pdf", visible_y_axis=visible_y_axis, visible_sidebar=visible_sidebar) # Differences between energies in semi-quantum and quantum (DMRG) cases
+        # plot_2D_map_hard_boundaries(np.asarray(all_differences_quantum_semi_quantum_energies).T, 'RdBu_r', "D = " + str(D), min_J, max_J, "J", min_L, max_L, "$\lambda$", -0.5, 0.5, "D="+str(D)+"_quantum_semi_quantum_energy_differences.pdf", visible_y_axis=visible_y_axis, visible_sidebar=visible_sidebar) # Differences between energies in semi-quantum and quantum (DMRG) cases
+        plot_2D_map_hard_boundaries(np.asarray(all_differences_quantum_semi_quantum_energies).T, 'Blues_r', "D = " + str(D), min_J, max_J, "J", min_L, max_L, "$\lambda$", -0.5, 0, "D="+str(D)+"_quantum_semi_quantum_energy_differences.pdf", visible_y_axis=visible_y_axis, visible_sidebar=visible_sidebar, hatches=['o', '*', 'x', '+', '-', '|', '/', '\\']) # Differences between energies in semi-quantum and quantum (DMRG) cases
 
 
         if np.min(all_min_energies) < groundstate_energy_min:
